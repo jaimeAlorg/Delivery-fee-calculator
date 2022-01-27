@@ -16,48 +16,87 @@ import {
     useColorMode,
     useColorModeValue,
 } from '@chakra-ui/react';
-import { CardActionArea } from '@mui/material';
 import React, { useState } from 'react';
 import { BiMoon, BiSun } from 'react-icons/bi';
 
-interface ICart {
-    cartValue: number | undefined;
-    distance: number | undefined;
-    nItems: number | undefined;
+interface Cart {
+    cartValue: number | null;
+    distance: number | null;
+    nItems: number | null;
+    date: any | null | Date;
 }
 
-export const Form: React.FC<ICart> = () => {
+function feeCalc(
+    cartValue: number,
+    distance: number,
+    nItems: number,
+    date: Date
+): number | string {
+    let totalFee: number = 0;
+    let extraItems: number;
+    let extraDistance: number;
+
+    //SEPARATES TIME AND DAY
+    var today = new Date(date);
+    var nDay = today.getDay();
+    var time = today.getHours();
+
+    if (cartValue < 10) {
+        totalFee = 10 - cartValue;
+    } else if (cartValue >= 100) {
+        return totalFee;
+    }
+
+    if (distance < 1000) {
+        totalFee += 1;
+    } else if (distance > 1000) {
+        extraDistance = distance - 1000;
+
+        totalFee += 2 + Math.ceil(extraDistance / 500);
+    }
+
+    if (nItems > 4) {
+        extraItems = nItems - 4;
+        totalFee += extraItems * 0.5;
+    }
+
+    if (nDay === 5 && time >= 15 && time <= 19) {
+        totalFee *= 1.1;
+    }
+
+    if (totalFee > 15) {
+        totalFee = 15;
+    }
+
+    return totalFee.toFixed(2);
+}
+
+export const Form: React.FC<{}> = () => {
     const { colorMode, toggleColorMode } = useColorMode();
-    const myCart: ICart = {
-        cartValue: undefined,
-        distance: undefined,
-        nItems: undefined,
+    let [myCart, setMyCart] = useState<Cart>({
+        cartValue: null,
+        distance: null,
+        nItems: null,
+        date: new Date(),
+    });
+    let [feeValue, setFeeValue] = useState<number | string>(0);
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setMyCart({ ...myCart, [e.target.name]: e.target.value });
     };
 
-    // const [myCart, setMyCart] = useState<ICart>({
-    //     cartValue: undefined,
-    //     distance: undefined,
-    //     nItems: undefined,
-    // });
+    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
 
-    //let patata;
-
-    // const hadleChangeCart = (e: React.ChangeEvent<HTMLInputElement>) => {
-    //     myCart.cartValue = e.target.value;
-    // };
-
-    //Aqui rellenamos la variable
-    // const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    //     e.target.name = e.target.value;
-    // };
-
-    //Hacemos un console log y la logica
-    // const handleSubmit = (e: React.ChangeEvent<HTMLInputElement>) => {};
-
-    // };
-
-    let feeValue: number;
-    feeValue = 0;
+        setFeeValue(
+            feeCalc(
+                myCart.cartValue!,
+                myCart.distance!,
+                myCart.nItems!,
+                myCart.date!
+            )
+        );
+    };
 
     return (
         <>
@@ -105,58 +144,78 @@ export const Form: React.FC<ICart> = () => {
                                     />
                                 </Box>
                             </HStack>
-                            <form autoComplete='off' noValidate>
-                                <Box>
-                                    <FormControl id='cartValue' isRequired>
-                                        <FormLabel>Cart value</FormLabel>
-                                        <InputGroup>
-                                            <Input
-                                                type='number'
-                                                value={patata}
-                                                onChange={handleChange}
-                                            />
-                                            <InputRightElement
-                                                pointerEvents='none'
-                                                color={useColorModeValue(
-                                                    'black',
-                                                    'gray.200'
-                                                )}
-                                                fontSize='1.2em'
-                                                children='€'
-                                                pr={'16px'}
-                                            />
-                                        </InputGroup>
-                                    </FormControl>
-                                </Box>
-                                <Box>
-                                    <FormControl id='distance' isRequired>
-                                        <FormLabel>Delivery distance</FormLabel>
-                                        <InputGroup>
-                                            <Input type='number' />
-                                            <InputRightElement
-                                                pointerEvents='none'
-                                                color={useColorModeValue(
-                                                    'black',
-                                                    'gray.200'
-                                                )}
-                                                fontSize='1.2em'
-                                                children='m'
-                                                pr={'16px'}
-                                            />
-                                        </InputGroup>
-                                    </FormControl>
-                                </Box>
+                            <form
+                                autoComplete='off'
+                                noValidate
+                                onSubmit={handleSubmit}
+                            >
+                                <FormControl id='cartValue' isRequired>
+                                    <FormLabel>Cart value</FormLabel>
+                                    <InputGroup>
+                                        <Input
+                                            type='number'
+                                            name='cartValue'
+                                            value={myCart.cartValue || ''}
+                                            onChange={handleChange}
+                                        />
+                                        <InputRightElement
+                                            pointerEvents='none'
+                                            color={useColorModeValue(
+                                                'black',
+                                                'gray.200'
+                                            )}
+                                            fontSize='1.2em'
+                                            children='€'
+                                            pr={'16px'}
+                                        />
+                                    </InputGroup>
+                                </FormControl>
+
+                                <FormControl id='distance' isRequired>
+                                    <FormLabel>Delivery distance</FormLabel>
+                                    <InputGroup>
+                                        <Input
+                                            type='number'
+                                            name='distance'
+                                            value={myCart.distance || ''}
+                                            onChange={handleChange}
+                                        />
+                                        <InputRightElement
+                                            pointerEvents='none'
+                                            color={useColorModeValue(
+                                                'black',
+                                                'gray.200'
+                                            )}
+                                            fontSize='1.2em'
+                                            children='m'
+                                            pr={'16px'}
+                                        />
+                                    </InputGroup>
+                                </FormControl>
 
                                 <FormControl id='nItems' isRequired>
                                     <FormLabel>Amount of items</FormLabel>
-                                    <Input type='number' />
+                                    <Input
+                                        type='number'
+                                        name='nItems'
+                                        value={myCart.nItems || ''}
+                                        onChange={handleChange}
+                                    />
                                 </FormControl>
+
                                 <FormControl id='date' isRequired>
                                     <FormLabel>Date and Time</FormLabel>
-                                    <Input type='datetime-local'></Input>
+                                    <Input
+                                        type='datetime-local'
+                                        name='date'
+                                        value={myCart.date || ''}
+                                        onChange={handleChange}
+                                    ></Input>
                                 </FormControl>
+
                                 <HStack pt={2}>
                                     <Button
+                                        type='submit'
                                         loadingText='Submitting'
                                         size='lg'
                                         bg={'blue.400'}
@@ -177,7 +236,7 @@ export const Form: React.FC<ICart> = () => {
                                         }}
                                         pr={'5px'}
                                     >
-                                        Delivery price: 2€
+                                        Delivery price: {feeValue}€
                                     </Text>
                                 </HStack>
                             </form>
