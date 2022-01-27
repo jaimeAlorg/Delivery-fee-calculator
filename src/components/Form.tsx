@@ -88,8 +88,8 @@ export const Form: React.FC<{}> = () => {
         dateError: false,
     });
     let [feeValue, setFeeValue] = useState<number | string>(0);
-    let valid: boolean = true;
 
+    let valid: boolean = true;
     let today: Date = new Date();
 
     const validation = (
@@ -119,7 +119,6 @@ export const Form: React.FC<{}> = () => {
             valid = false;
         }
 
-        //getTime method is in UTC
         if (!orderTime || orderDate.getTime() < today.getTime()) {
             checkDate = true;
             valid = false;
@@ -286,7 +285,6 @@ export const Form: React.FC<{}> = () => {
                                         )}
                                     </FormControl>
                                 </Box>
-
                                 <Box pb='10px'>
                                     <FormControl id='nItems' isRequired>
                                         <FormLabel>Amount of items</FormLabel>
