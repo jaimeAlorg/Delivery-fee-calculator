@@ -23,7 +23,11 @@ interface Cart {
     cartValue: number | null;
     distance: number | null;
     nItems: number | null;
-    date: any | null | Date;
+    orderTime: any | Date;
+    valueError: boolean;
+    distanceError: boolean;
+    nItemsError: boolean;
+    dateError: boolean;
 }
 
 function feeCalc(
@@ -36,10 +40,9 @@ function feeCalc(
     let extraItems: number;
     let extraDistance: number;
 
-    //SEPARATES TIME AND DAY
-    var today = new Date(date);
-    var nDay = today.getDay();
-    var time = today.getHours();
+    let today = new Date(date);
+    let nDay = today.getUTCDay();
+    let time = today.getUTCHours();
 
     if (cartValue < 10) {
         totalFee = 10 - cartValue;
@@ -73,13 +76,67 @@ function feeCalc(
 
 export const Form: React.FC<{}> = () => {
     const { colorMode, toggleColorMode } = useColorMode();
+
     let [myCart, setMyCart] = useState<Cart>({
         cartValue: null,
         distance: null,
         nItems: null,
-        date: new Date(),
+        orderTime: '',
+        valueError: false,
+        distanceError: false,
+        nItemsError: false,
+        dateError: false,
     });
     let [feeValue, setFeeValue] = useState<number | string>(0);
+    let valid: boolean = true;
+
+    let today: Date = new Date();
+
+    const validation = (
+        cartValue: number,
+        distance: number,
+        nItems: number,
+        orderTime: Date
+    ): boolean => {
+        let checkVal: boolean = false,
+            checkDist: boolean = false,
+            checkItems: boolean = false,
+            checkDate: boolean = false,
+            orderDate = new Date(orderTime);
+
+        if (!cartValue || cartValue < 0) {
+            checkVal = true;
+            valid = false;
+        }
+
+        if (!distance || distance < 0) {
+            checkDist = true;
+            valid = false;
+        }
+
+        if (!nItems || nItems < 0) {
+            checkItems = true;
+            valid = false;
+        }
+
+        //getTime method is in UTC
+        if (!orderTime || orderDate.getTime() < today.getTime()) {
+            checkDate = true;
+            valid = false;
+        }
+
+        if (checkVal || checkDist) {
+            setMyCart({
+                ...myCart,
+                valueError: checkVal,
+                distanceError: checkDist,
+                nItemsError: checkItems,
+                dateError: checkDate,
+            });
+        }
+
+        return valid;
+    };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setMyCart({ ...myCart, [e.target.name]: e.target.value });
@@ -88,14 +145,32 @@ export const Form: React.FC<{}> = () => {
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
-        setFeeValue(
-            feeCalc(
-                myCart.cartValue!,
-                myCart.distance!,
-                myCart.nItems!,
-                myCart.date!
-            )
+        valid = validation(
+            myCart.cartValue!,
+            myCart.distance!,
+            myCart.nItems!,
+            myCart.orderTime!
         );
+
+        if (valid) {
+            setFeeValue(
+                feeCalc(
+                    myCart.cartValue!,
+                    myCart.distance!,
+                    myCart.nItems!,
+                    myCart.orderTime!
+                )
+            );
+            setMyCart({
+                ...myCart,
+                valueError: false,
+                distanceError: false,
+                nItemsError: false,
+                dateError: false,
+            });
+        } else {
+            setFeeValue(0);
+        }
     };
 
     return (
@@ -105,7 +180,7 @@ export const Form: React.FC<{}> = () => {
                 align={'center'}
                 bg={useColorModeValue('gray.50', 'gray.800')}
             >
-                <Stack mx={'auto'} maxW={'lg'}>
+                <Stack mx={'auto'} maxW={'lg'} w={{ base: '93%' }}>
                     <Box
                         rounded={'lg'}
                         bg={useColorModeValue('white', 'gray.700')}
@@ -149,69 +224,105 @@ export const Form: React.FC<{}> = () => {
                                 noValidate
                                 onSubmit={handleSubmit}
                             >
-                                <FormControl id='cartValue' isRequired>
-                                    <FormLabel>Cart value</FormLabel>
-                                    <InputGroup>
+                                <Box pb='10px'>
+                                    <FormControl id='cartValue' isRequired>
+                                        <FormLabel>Cart value</FormLabel>
+                                        <InputGroup>
+                                            <Input
+                                                type='number'
+                                                name='cartValue'
+                                                min='0'
+                                                value={myCart.cartValue || ''}
+                                                onChange={handleChange}
+                                            />
+
+                                            <InputRightElement
+                                                pointerEvents='none'
+                                                color={useColorModeValue(
+                                                    'black',
+                                                    'gray.200'
+                                                )}
+                                                fontSize='1.2em'
+                                                children='€'
+                                                pr={'16px'}
+                                            />
+                                        </InputGroup>
+                                        {!myCart.valueError ? (
+                                            ''
+                                        ) : (
+                                            <Text color='red.500'>
+                                                Invalid cart value
+                                            </Text>
+                                        )}
+                                    </FormControl>
+                                </Box>
+                                <Box pb='10px'>
+                                    <FormControl id='distance' isRequired>
+                                        <FormLabel>Delivery distance</FormLabel>
+                                        <InputGroup>
+                                            <Input
+                                                type='number'
+                                                name='distance'
+                                                value={myCart.distance || ''}
+                                                onChange={handleChange}
+                                            />
+                                            <InputRightElement
+                                                pointerEvents='none'
+                                                color={useColorModeValue(
+                                                    'black',
+                                                    'gray.200'
+                                                )}
+                                                fontSize='1.2em'
+                                                children='m'
+                                                pr={'16px'}
+                                            />
+                                        </InputGroup>
+                                        {!myCart.distanceError ? (
+                                            ''
+                                        ) : (
+                                            <Text color='red.500'>
+                                                Invalid distance
+                                            </Text>
+                                        )}
+                                    </FormControl>
+                                </Box>
+
+                                <Box pb='10px'>
+                                    <FormControl id='nItems' isRequired>
+                                        <FormLabel>Amount of items</FormLabel>
                                         <Input
                                             type='number'
-                                            name='cartValue'
-                                            value={myCart.cartValue || ''}
+                                            name='nItems'
+                                            value={myCart.nItems || ''}
                                             onChange={handleChange}
                                         />
-                                        <InputRightElement
-                                            pointerEvents='none'
-                                            color={useColorModeValue(
-                                                'black',
-                                                'gray.200'
-                                            )}
-                                            fontSize='1.2em'
-                                            children='€'
-                                            pr={'16px'}
-                                        />
-                                    </InputGroup>
-                                </FormControl>
-
-                                <FormControl id='distance' isRequired>
-                                    <FormLabel>Delivery distance</FormLabel>
-                                    <InputGroup>
+                                        {!myCart.nItemsError ? (
+                                            ''
+                                        ) : (
+                                            <Text color='red.500'>
+                                                Invalid amount
+                                            </Text>
+                                        )}
+                                    </FormControl>
+                                </Box>
+                                <Box pb='10px'>
+                                    <FormControl id='date' isRequired>
+                                        <FormLabel>Order time</FormLabel>
                                         <Input
-                                            type='number'
-                                            name='distance'
-                                            value={myCart.distance || ''}
+                                            type='datetime-local'
+                                            name='orderTime'
+                                            value={myCart.orderTime || ''}
                                             onChange={handleChange}
                                         />
-                                        <InputRightElement
-                                            pointerEvents='none'
-                                            color={useColorModeValue(
-                                                'black',
-                                                'gray.200'
-                                            )}
-                                            fontSize='1.2em'
-                                            children='m'
-                                            pr={'16px'}
-                                        />
-                                    </InputGroup>
-                                </FormControl>
-
-                                <FormControl id='nItems' isRequired>
-                                    <FormLabel>Amount of items</FormLabel>
-                                    <Input
-                                        type='number'
-                                        name='nItems'
-                                        value={myCart.nItems || ''}
-                                        onChange={handleChange}
-                                    />
-                                </FormControl>
-
-                                <FormControl id='date' isRequired>
-                                    <FormLabel>Date and Time</FormLabel>
-                                    <Input
-                                        type='datetime-local'
-                                        name='date'
-                                        value={myCart.date || ''}
-                                        onChange={handleChange}
-                                    ></Input>
-                                </FormControl>
+                                        {!myCart.dateError ? (
+                                            ''
+                                        ) : (
+                                            <Text color='red.500'>
+                                                Invalid order time
+                                            </Text>
+                                        )}
+                                    </FormControl>
+                                </Box>
 
                                 <HStack pt={2}>
                                     <Button
