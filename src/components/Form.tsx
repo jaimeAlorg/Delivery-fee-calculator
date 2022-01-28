@@ -195,7 +195,10 @@ export const Form: React.FC<{}> = () => {
                                         sm: '3xl',
                                         md: '3xl',
                                     }}
-                                    color={'blue.600'}
+                                    color={useColorModeValue(
+                                        'blue.600',
+                                        'blue.400'
+                                    )}
                                 >
                                     Delivery Fee Calculator
                                 </Heading>
@@ -211,8 +214,8 @@ export const Form: React.FC<{}> = () => {
                                         h={{ base: '5', sm: '7', md: '7' }}
                                         onClick={toggleColorMode}
                                         _hover={{
-                                            color: 'blue.600',
-                                            fill: 'blue.600',
+                                            color: 'blue.500',
+                                            fill: 'blue.500',
                                         }}
                                         cursor='pointer'
                                     />
@@ -337,7 +340,10 @@ export const Form: React.FC<{}> = () => {
                                     </Button>
                                     <Spacer />
                                     <Text
-                                        color='blue.500'
+                                        color={useColorModeValue(
+                                            'blue.500',
+                                            'blue.400'
+                                        )}
                                         fontSize={{
                                             base: 'md',
                                             sm: 'lg',
