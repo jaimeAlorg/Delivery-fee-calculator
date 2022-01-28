@@ -52,7 +52,7 @@ function feeCalc(
 
     if (distance < 1000) {
         totalFee += 1;
-    } else if (distance > 1000) {
+    } else if (distance >= 1000) {
         extraDistance = distance - 1000;
 
         totalFee += 2 + Math.ceil(extraDistance / 500);
@@ -104,17 +104,17 @@ export const Form: React.FC<{}> = () => {
             checkDate: boolean = false,
             orderDate = new Date(orderTime);
 
-        if (!cartValue || cartValue < 0) {
+        if (!cartValue || cartValue <= 0) {
             checkVal = true;
             valid = false;
         }
 
-        if (!distance || distance < 0) {
+        if (!distance || distance <= 0) {
             checkDist = true;
             valid = false;
         }
 
-        if (!nItems || nItems < 0) {
+        if (!nItems || nItems <= 0) {
             checkItems = true;
             valid = false;
         }
@@ -124,7 +124,7 @@ export const Form: React.FC<{}> = () => {
             valid = false;
         }
 
-        if (checkVal || checkDist) {
+        if (checkVal || checkDist || checkItems || checkDate) {
             setMyCart({
                 ...myCart,
                 valueError: checkVal,
