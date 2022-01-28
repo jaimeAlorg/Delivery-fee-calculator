@@ -5,7 +5,8 @@
 1. [Introduction](#introduction)
 2. [Available Scripts](#available-scripts)
 3. [Live Demo](#live-demo)
-4. [How To Use Docker](#how-to-use-docker)
+4. [Install Node Modules](#npm-install)
+5. [How To Use Docker](#how-to-use-docker)
 
 ## Introduction
 
@@ -14,6 +15,12 @@ This web application is made using React, Typescript and Chakra-UI to style it. 
 ## Live demo
 
 `https://delivery-fee-calculator.netlify.app`
+
+## Install Node Modules
+
+### `npm install`
+
+Install all Node modules and dependecies needed for the project.
 
 ## Available Scripts
 
@@ -42,3 +49,11 @@ Builds the container.
 ### `docker run -p 443:443 --add-host=host.docker.internal:host-gateway -it <name>`
 
 Runs the container in the port 443.
+
+### SSL Certificate Information
+
+Since it is a self-signed SSL certificate, while running the container, in certain web browser there will be an alert about an insecure connection. To avoid this alert please use Safari or Firefox.
+
+### Execute in Web Browser
+
+`https://localhost`
